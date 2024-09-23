@@ -104,3 +104,107 @@ class TestProductModel(unittest.TestCase):
     #
     # ADD YOUR TEST CASES HERE
     #
+    def test_read_a_product(self):
+        """It should create a product and retrieve it from the database"""
+        product = ProductFactory()
+        product.id = None
+        product.create()
+        # Assert that it was assigned an id and shows up in the db
+        self.assertIsNotNone(product.id)
+        found_product = Product.find(product.id)
+        self.assertEqual(found_product.id, product.id)
+        self.assertEqual(found_product.name, product.name)
+        self.assertEqual(found_product.description, product.description)
+        self.assertEqual(Decimal(found_product.price), product.price)
+        self.assertEqual(found_product.available, product.available)
+        self.assertEqual(found_product.category, product.category)
+
+    def test_update_a_product(self):
+        """It should update a product on the database"""
+        product = ProductFactory()
+        product.id = None
+        product.create()
+        self.assertIsNotNone(product.id)
+        # Update data
+        product.description = "just testing"
+        original_id = product.id
+        product.update()
+        self.assertEqual(product.id, original_id)
+        self.assertEqual(product.description, "just testing")
+        # Fetch from DB and make sure id is same but description has updated.
+        products = Product.all()
+        self.assertEqual(len(products), 1)
+        self.assertEqual(products[0].id, original_id)
+        self.assertEqual(products[0].description, "just testing")
+
+    def test_delete_a_product(self):
+        """It should delete a product from the database"""
+        product = ProductFactory()
+        product.id = None
+        product.create()
+        self.assertIsNotNone(product.id)
+        # Check there's only one product in the database
+        self.assertEqual(len(Product.all()), 1)
+        # Delete product from database
+        product.delete()
+        # Check product is missing from DB
+        self.assertEqual(len(Product.all()), 0)
+
+    def test_list_all_products(self):
+        """ It should list all products in the database """
+        # Check DB is empty
+        self.assertEqual(len(Product.all()), 0)
+        # Create 5 accounts with while loop
+        for _ in range(5):
+            product = ProductFactory()
+            product.id = None
+            product.create()
+
+        # Fetch products from DB
+        products = Product.all()
+        self.assertEqual(len(products), 5)
+
+    def test_find_product_by_name(self):
+        """ It should find a product by name """
+        # Create test data
+        products = ProductFactory.create_batch(5)
+        for product in products:
+            product.create()
+
+        products = Product.all()
+        name = products[0].name
+        count = len([product for product in products if product.name == name])
+        found = Product.find_by_name(name)
+        self.assertEqual(found.count(), count)
+        for product in found:
+            self.assertEqual(product.name, name)
+
+    def test_find_by_availability(self):
+        """ It should find a product by availability """
+        # Create test data
+        products = ProductFactory.create_batch(5)
+        for product in products:
+            product.create()
+
+        products = Product.all()
+        availability = products[0].available
+        count = len([product for product in products if product.available == availability])
+        found = Product.find_by_availability(availability)
+        self.assertEqual(found.count(), count)
+        for product in found:
+            self.assertEqual(product.available, availability)
+
+    def test_find_by_category(self):
+        """ It should find a product by category """
+        # Create test data
+        products = ProductFactory.create_batch(5)
+        for product in products:
+            product.create()
+
+        products = Product.all()
+        category = products[0].category
+        count = len([product for product in products if product.category == category])
+        found = Product.find_by_category(category)
+        self.assertEqual(found.count(), count)
+        for product in found:
+            self.assertEqual(product.category, category)
