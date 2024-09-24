@@ -142,8 +142,15 @@ def updated_products(product_id):
     app.logger.info("Request to update product with id [%s]", product_id)
     check_content_type("application/json")
 
-    
-    
+    product = Product.find(product_id)
+    if not product:
+        abort(status.HTTP_404_NOT_FOUND, f"Product with id '{product_id}' not found")
+
+    app.logger.info("Updating product: %s", product_id)
+    product.deserialize(request.get_json())
+    product.id = product_id
+    product.update()
+    return product.serialize(), status.HTTP_200_OK
 
 ######################################################################
 # D E L E T E   A   P R O D U C T
